@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 5084814254135222555}
   m_Layer: 0
   m_Name: Projectile
-  m_TagString: Untagged
+  m_TagString: Projectile
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -122,7 +122,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 830b6d19208e38645824fd08fbe601d7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  impactDamage: 0
+  impactDamage: 1
   areaOfEffectDamage: 0
-  areaOfEffectRange: 0
+  areaOfEffectDiameter: 0
   damageType: 0
+  areaOfEffectPrototype: {fileID: 5743338381550647779, guid: af754ac73473e444fab60224889828fa,
+    type: 3}
