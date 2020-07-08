@@ -57,6 +57,11 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 currentVerticalMovement;
 
     [SerializeField]
+    private bool pressedCTRLOnce = false;
+    private float dropTimer = 0.3f;
+    private float dropTimerLeft = 0.0f;
+
+    [SerializeField]
     private float turningSpeedGround;
 
     public float TurningSpeedGround
@@ -109,6 +114,17 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerCore playerCore;
 
+    #region Raycast Origins
+    private Vector3 front, back, right, left;
+    #endregion
+
+    [SerializeField]
+    private float maxDescentSlopeAngle = 80.0f;
+
+    LayerMask landableMask;
+
+    private Vector3 lastCollisionPoint;
+
     // Start is called before the first frame update
     void Start()
     { 
@@ -116,6 +132,7 @@ public class PlayerMovement : MonoBehaviour
         characterController = GetComponent<CharacterController>();
         rotationAmount = delta;
         playerCore = GetComponent<PlayerCore>();
+        landableMask = LayerMask.GetMask("LandableSurface");
 
         //airDodge = GetComponent<AirDodge>();
 
@@ -126,14 +143,26 @@ public class PlayerMovement : MonoBehaviour
         currentGravity = 0.0f;
         currentVerticalMovement = Vector3.zero;
 
+        lastCollisionPoint = Vector3.zero;
+
         // Make a camera for the player
     }
 
     // Update is called once per frame
-    /*void Update()
+    void Update()
     {
-        
-    }*/
+        if (pressedCTRLOnce)
+        {
+            dropTimerLeft -= Time.deltaTime;
+
+            if (dropTimerLeft <= delta)
+            {
+                pressedCTRLOnce = false;
+            }
+        }
+        // Change transition to falling/onGround to factor in whether or not the player is grounded
+        // Debug.Log(characterController.isGrounded);
+    }
 
     // Note for later: Maybe only use physics-based movement for aerial movement
     // ToDo: Change direction to move toward crosshair. Right now, it's hard to tell where the character is going. May need to use some arbitrary point.
@@ -156,9 +185,11 @@ public class PlayerMovement : MonoBehaviour
                     playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate;
                 }
                 velocity.y = 0.0f;
+                playerCore.Stamina += playerCore.StaminaReplenishRate;
                 break;
             case PlayerState.OnGround:
                 velocity.y = 0.0f;
+                playerCore.FlightStamina += playerCore.FlightStaminaReplenishRate;
                 break;
         }
         
@@ -170,6 +201,13 @@ public class PlayerMovement : MonoBehaviour
         velocity = new Vector3(0.0f, velocity.y, 0.0f);
         velocity += transform.forward * Input.GetAxis("Vertical") * currentSpeed;
         velocity += transform.right * Input.GetAxis("Horizontal") * currentSpeed;
+
+        // Descending slope
+        if(playerState == PlayerState.OnGround && !Input.GetKey(KeyCode.Space))
+        {
+            UpdateOrigins();
+            velocity.y = DescendSlope().y - transform.position.y;
+        }
 
         Jump();
         velocity += Vector3.up * -currentGravity;
@@ -225,6 +263,22 @@ public class PlayerMovement : MonoBehaviour
         }
         else if ((Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.LeftControl)) && playerState == PlayerState.InAir)
         {
+            if (!pressedCTRLOnce)
+            {
+                if (Input.GetKeyDown(KeyCode.LeftControl)){
+                    pressedCTRLOnce = true;
+                    dropTimerLeft = dropTimer;
+                }
+            }
+            else
+            {
+                if (Input.GetKeyDown(KeyCode.LeftControl))
+                {
+                    pressedCTRLOnce = false;
+                    playerState = PlayerState.Falling;
+                    currentGravity = gravity;
+                }
+            }
             velocity += Vector3.up * Input.GetAxis("Jump") * currentSpeedVertical;
         }
         if(playerState == PlayerState.OnGround)
@@ -239,7 +293,7 @@ public class PlayerMovement : MonoBehaviour
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
         // Need to update once animations are added to handle taking off and landing
-        if (hit.collider.gameObject.layer == 9)
+        if (hit.collider.gameObject.layer == 9 && characterController.isGrounded)
         {
             if (playerState != PlayerState.OnGround)
             {
@@ -248,6 +302,7 @@ public class PlayerMovement : MonoBehaviour
                 currentSpeedVertical = speedVerticalGround;
                 currentTurningSpeed = turningSpeedGround;
                 currentGravity = gravity;
+                lastCollisionPoint = hit.point;
             }
         }
     }
@@ -272,7 +327,7 @@ public class PlayerMovement : MonoBehaviour
                     break;
             }
         }
-        else if (Input.GetKey(KeyCode.LeftShift))
+        else if (Input.GetKey(KeyCode.LeftShift) && characterController.velocity.magnitude >= delta)
         {
             switch (playerState)
             {
@@ -281,14 +336,12 @@ public class PlayerMovement : MonoBehaviour
                     {
                         playerCore.Stamina -= playerCore.StaminaConsumptionRate;
                     }
-                    playerCore.FlightStamina += playerCore.FlightStaminaReplenishRate;
                     break;
                 case PlayerState.InAir:
                     if (playerCore.FlightStamina >= delta)
                     {
                         playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate;
                     }
-                    playerCore.Stamina += playerCore.StaminaReplenishRate;
                     break;
             }
         }
@@ -317,5 +370,82 @@ public class PlayerMovement : MonoBehaviour
                     break;
             }
         }
+    }
+
+    private void UpdateOrigins()
+    {
+        // Need to find out how to get right and left from velocity
+        front = transform.position + (velocity.normalized * (characterController.radius - characterController.skinWidth));
+        back = transform.position + (-velocity.normalized * (characterController.radius - characterController.skinWidth));
+        right = transform.position + ((Quaternion.AngleAxis(90.0f, transform.up) * new Vector3(velocity.x, 0.0f, velocity.z).normalized) * (characterController.radius - characterController.skinWidth));
+        left = transform.position + (-(Quaternion.AngleAxis(90.0f, transform.up) * new Vector3(velocity.x, 0.0f, velocity.z).normalized) * (characterController.radius - characterController.skinWidth));
+    }
+
+    private Vector3 DescendSlope()
+    {
+        float directionZ = Mathf.Sign(velocity.z);
+        float directionX = Mathf.Sign(velocity.x);
+
+        RaycastHit hit = new RaycastHit();
+        Vector3 output = Vector3.zero;
+
+        // Need to find angle and see if descending
+        /*if(directionZ >= 0.0f)
+        {
+            RaycastHit hitFront = RaycastToGround(front);
+            if (directionX > 0.0f)
+            {
+                RaycastHit hitRight = RaycastToGround(right);
+                hit = hitFront.point.y > hitRight.point.y ? hitFront : hitRight;
+            }
+            else if(directionX < 0.0f)
+            {
+                RaycastHit hitLeft = RaycastToGround(left);
+                hit = hitFront.point.y > hitLeft.point.y ? hitFront : hitLeft;
+            }
+        }
+        else if (directionZ < 0.0f)
+        {
+            RaycastHit hitBack = RaycastToGround(back);
+            if (directionX > 0.0f)
+            {
+                RaycastHit hitRight = RaycastToGround(right);
+                hit = hitBack.point.y > hitRight.point.y ? hitBack : hitRight;
+            }
+            else if (directionX < 0.0f)
+            {
+                RaycastHit hitLeft = RaycastToGround(left);
+                hit = hitBack.point.y > hitLeft.point.y ? hitBack : hitLeft;
+            }
+        }*/
+
+        Vector3 pointOnCollider = transform.position + velocity + (lastCollisionPoint - transform.position);
+        hit = RaycastToGround(pointOnCollider);
+
+        if (hit.distance > 0.0f)
+        {
+            float angle = Vector3.Angle(hit.normal, transform.up);
+            if(angle != 0.0f && angle <= maxDescentSlopeAngle)
+            {
+                if(Mathf.Sign(hit.normal.z) == velocity.z && Mathf.Sign(hit.normal.x) == velocity.x)
+                {
+                    output.y = hit.point.y;
+                }
+            }
+        }
+        return Vector3.zero;
+    }
+
+    private RaycastHit RaycastToGround(Vector3 origin)
+    {
+        RaycastHit hit;
+        Physics.Raycast(origin, -transform.up, out hit, Mathf.Infinity, landableMask);
+        return hit;
+    }
+
+    private void OnDrawGizmos()
+    {
+        Gizmos.color = new Color(0.0f, 1.0f, 0.0f);
+        Gizmos.DrawLine(transform.position, transform.position + Quaternion.AngleAxis(90.0f, transform.up) * new Vector3(velocity.x, 0.0f, velocity.z).normalized * 5.0f); //Vector3.Cross(velocity, Vector3.up) * 5.0f);
     }
 }

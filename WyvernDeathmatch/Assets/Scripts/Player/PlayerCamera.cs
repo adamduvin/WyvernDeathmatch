@@ -85,12 +85,20 @@ public class PlayerCamera : MonoBehaviour
         set { lastPlayerPosition = value; }
     }
 
+    [SerializeField]
+    private Vector3 lookAtTarget;
+
+    private Quaternion originalRotation;
+
+    private LayerMask maskExcludeProjectiles;
+
     // Start is called before the first frame update
     void Start()
     {
         // Might want to start setting everything here
         lastPlayerPosition = playerMovement.gameObject.transform.position;
         playerController = playerMovement.GetComponent<CharacterController>();
+        maskExcludeProjectiles =~ LayerMask.GetMask("Projectile");
     }
 
     private void OnEnable()
@@ -105,6 +113,7 @@ public class PlayerCamera : MonoBehaviour
         movementTarget = playerMovement.transform.position;
         cameraState = CameraState.Normal;   // Temp
         currentFOV = defaultFOV;
+        originalRotation = transform.rotation;
     }
 
     private void Update()
@@ -125,6 +134,9 @@ public class PlayerCamera : MonoBehaviour
     private void RotateCamera()
     {
         Quaternion rotationTarget = Quaternion.identity;
+
+        // Have camera look at a raycast hit
+        transform.rotation = originalRotation;
 
         if (Mathf.Abs(Input.GetAxis("Mouse X")) >= delta)
         {
@@ -149,6 +161,20 @@ public class PlayerCamera : MonoBehaviour
             rotationTarget *= Quaternion.AngleAxis(angle, transform.right);
         }
         transform.rotation = rotationTarget * transform.rotation;
+
+        originalRotation = transform.rotation;
+        
+        /*if (Physics.Raycast(transform.position, transform.forward, out hit, Mathf.Infinity))
+        {
+            //Debug.Log("Hit: " + hit.point);
+            lookAtTarget = hit.point;
+        }
+        else
+        {
+            Debug.Log("Missed: " + hit.point);
+            lookAtTarget = transform.position + transform.forward * 20.0f;
+        }*/
+
         playerMovement.RotatePlayer(Convert.ToBoolean(cameraState));
         transform.position = lastPlayerPosition;
         MoveCamera();   // Set movement smoothing here as well as rotation smoothing
@@ -165,9 +191,25 @@ public class PlayerCamera : MonoBehaviour
             transform.position = movementTarget;
         }
 
+        Vector3 posWithOffset = transform.position;
+        posWithOffset -= transform.forward * offset.z;
+        posWithOffset += transform.right * offset.x;
+        posWithOffset += transform.up * offset.y;
+        RaycastHit hit;
+        if (Physics.Raycast(posWithOffset, originalRotation * Vector3.forward, out hit, Mathf.Infinity, maskExcludeProjectiles))
+        {
+            lookAtTarget = hit.point;
+        }
+        else
+        {
+            lookAtTarget = posWithOffset + (originalRotation * Vector3.forward * 1000.0f);
+        }
+
         transform.position -= transform.forward * currentOffset.z;
         transform.position += transform.right * currentOffset.x;
         transform.position += transform.up * currentOffset.y;
+        //Debug.Log("Target: " + lookAtTarget);
+        transform.LookAt(lookAtTarget);
     }
 
     private void AimDownSights(Vector3 target, float FOV)

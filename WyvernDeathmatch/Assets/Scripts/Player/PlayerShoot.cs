@@ -6,7 +6,7 @@ using static Globals;
 public class PlayerShoot : MonoBehaviour
 {
     [SerializeField]
-    private Vector3 projectileSpawnPoint;
+    private GameObject projectileSpawnPoint;
 
     [SerializeField]
     private Camera playerCamera;
@@ -34,24 +34,32 @@ public class PlayerShoot : MonoBehaviour
     [SerializeField]
     private float spawnPointAdjustment = 0.0f;
 
+    private LayerMask maskExcludeSoftBoundary;
+
     // Start is called before the first frame update
+    private void Start()
+    {
+        maskExcludeSoftBoundary =~ LayerMask.GetMask("SoftBoundary");
+    }
+
     void OnEnable()
     {
         currentWeaponIndex = -1;
         currentWeapon = weapons[0];
         LoadNextWeapon();
-        projectileSpawnPoint = playerCamera.transform.forward * distance;
+        //projectileSpawnPoint = playerCamera.transform.forward * distance;
     }
 
     // Update is called once per frame
     void Update()
     {
-        projectileSpawnPoint = playerCamera.transform.position + (playerCamera.transform.forward * (distance + spawnPointAdjustment));
+        //projectileSpawnPoint = playerCamera.transform.position + (playerCamera.transform.forward * (distance + spawnPointAdjustment));
 
         OnSwapWeapon();
 
         // Is there a way to not do this?
-        if(reloadTimeRemaining >= delta)
+        // Move this to weapon
+        /*if(reloadTimeRemaining >= delta)
         {
             reloadTimeRemaining -= Time.deltaTime;
         }
@@ -76,7 +84,7 @@ public class PlayerShoot : MonoBehaviour
                     cooldownTimeRemaining = currentCooldownTime;
                 }
             }
-        }
+        }*/
     }
 
     // ToDo: Need to change camera numbers here
@@ -96,19 +104,34 @@ public class PlayerShoot : MonoBehaviour
         currentWeapon.isActive = false;
         currentWeaponIndex = ++currentWeaponIndex % 2;
         currentWeapon = weapons[currentWeaponIndex];
-        currentWeapon.isActive = true;
+        currentWeapon.SwitchToWeapon();
+        /*currentWeapon.isActive = true;
         currentReloadTime = currentWeapon.reloadTime;
         currentCooldownTime = currentWeapon.cooldownTime;
         reloadTimeRemaining = 0.0f;
-        cooldownTimeRemaining = 0.0f;
+        cooldownTimeRemaining = 0.0f;*/
     }
 
-    private void Shoot()
+    public void FindProjectileTarget(ref Vector3 target)
     {
-        if(cooldownTimeRemaining < delta)
+        if(Input.GetMouseButton(0) || Input.GetMouseButtonDown(0))
         {
-            currentWeapon.Shoot(projectileSpawnPoint, playerCamera.transform.rotation);
-            cooldownTimeRemaining = currentWeapon.cooldownTime;
+            RaycastHit hit;
+            Vector3 hitLocation;
+            if(Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, Mathf.Infinity, maskExcludeSoftBoundary))
+            {
+                //Debug.Log(hit.collider.gameObject.name);
+                hitLocation = hit.point;
+            }
+            else
+            {
+                hitLocation = playerCamera.transform.position + (playerCamera.transform.forward * 1000.0f);
+            }
+
+            target = hitLocation;
+            
+            //currentWeapon.Shoot(projectileSpawnPoint.transform.position, hitLocation);// playerCamera.transform.rotation);
+            //cooldownTimeRemaining = currentWeapon.cooldownTime;
         }
     }
 }

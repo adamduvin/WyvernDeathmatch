@@ -13,4 +13,11 @@ public static class Globals
         Ice,
         Beam        // Need a better name, but I don't want "light"
     }
+
+    public enum GameMode
+    {
+        Singleplayer = 0,
+        Multiplayer = 1,
+        Development = 2
+    }
 }

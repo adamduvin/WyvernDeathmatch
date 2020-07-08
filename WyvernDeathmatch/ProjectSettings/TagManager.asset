@@ -16,8 +16,8 @@ TagManager:
   - 
   - Player
   - LandableSurface
-  - 
-  - 
+  - SoftBoundary
+  - Projectile
   - 
   - 
   - 

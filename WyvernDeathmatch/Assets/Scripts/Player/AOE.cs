@@ -26,6 +26,8 @@ public class AOE : MonoBehaviour
         
     }*/
 
+    // Might move localscale to start if I add it to the object pool
+    // Side-note: might want to make this a child of the projectile if I want it in the object pool
     private void OnEnable()
     {
         timer = 0.0f;

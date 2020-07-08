@@ -13,8 +13,14 @@ public class Projectile : MonoBehaviour
     private DamageType damageType;
     [SerializeField]
     private GameObject areaOfEffectPrototype;
+    //private const int playerMask = LayerMask.GetMask("Player");
+    //private int playerMaskValue;
 
     // Start is called before the first frame update
+    private void Start()
+    {
+        //playerMask = LayerMask.GetMask("Player");
+    }
     void OnEnable()
     {
         if (impactDamage <= 0.0f)
@@ -32,24 +38,42 @@ public class Projectile : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        switch (other.tag)
+        //Debug.Log(other.name);
+        // Remember to change case values if layers get changed
+        switch (other.gameObject.layer)
         {
-            case "Player":
+            case 8:
                 other.GetComponent<PlayerCore>().TakeDamage(impactDamage, damageType);
+                createAreaOfEffect();
+                Destroy(gameObject);
+                break;
+            case 9:
+                createAreaOfEffect();
+                Destroy(gameObject);
                 break;
             default:
                 break;
         }
+    }
 
-        createAreaOfEffect();
-        Destroy(gameObject);
+    private void OnTriggerExit(Collider other)
+    {
+        switch (other.gameObject.layer)
+        {
+            case 10:
+                //Debug.Log("Exit");
+                Destroy(gameObject);
+                break;
+            default:
+                break;
+        }
     }
 
     public void createAreaOfEffect()
     {
-        if(areaOfEffectDiameter >= delta)
+        if (areaOfEffectDiameter > delta)
         {
-            GameObject aoe = Instantiate(areaOfEffectPrototype, transform.position, Quaternion.identity);
+            Instantiate(areaOfEffectPrototype, transform.position, Quaternion.identity);
         }
     }
 }

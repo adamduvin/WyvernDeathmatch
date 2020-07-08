@@ -13,9 +13,16 @@ public class Weapon : MonoBehaviour
     public float force;
     public float maxVelocity;
     public float reloadTime = 0.0f;
+    [SerializeField]
+    private float reloadTimeRemaining = 0.0f;
     public float cooldownTime = 0.0f;      // Essentially Rate of Fire
+    [SerializeField]
+    private float cooldownTimeRemaining;
     public float swapTime = 0.0f;     // Make everyting const?
-    public float maxAmmo = 0.0f;
+    private float swapTimeRemaining;
+    public float maxAmmo = 0;
+    [SerializeField]
+    private float currentAmmo;
     public Vector3 ADSDistance;
     public GameObject projectilePrefab;
     public float maxDeviation;
@@ -27,43 +34,134 @@ public class Weapon : MonoBehaviour
     public bool isActive = false;
     public bool isAutomatic = false;
     public bool semiautoReadyToFire = false;        // Set to true in inspector if this weapon is semi-auto
-    public Image UIElement;
 
-    // Start is called before the first frame update
+    [SerializeField]
+    private GameObject projectileSpawnPoint;
+
+    private Vector3 target;
+    private PlayerShoot playerShoot;
+    
+    public Image UIElement;
+    [SerializeField]
+    private Image counter;
+    [SerializeField]
+    private Text counterText;
+
+    private bool isReloading = false;
+    
+
     void OnEnable()
     {
         currentDeviation = 0.0f;
         currentMaxDeviation = maxDeviation;
+        currentAmmo = maxAmmo;
+        if(counter.fillAmount <= 0)
+        {
+            counter.fillAmount = currentAmmo / maxAmmo;
+            counterText.text = currentAmmo.ToString();
+        }
+
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        playerShoot = GetComponent<PlayerShoot>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if(!isAutomatic && Input.GetMouseButtonUp(0))
+        //Debug.Log(counter.fillAmount);
+        if(swapTimeRemaining <= delta)
         {
-            semiautoReadyToFire = true;
-        }
-        if (isActive)
-        {
-            if (!Input.GetMouseButton(0) && !Input.GetMouseButtonDown(0))
+            if ((Input.GetKeyDown(KeyCode.R) && !isReloading && currentAmmo < maxAmmo) || currentAmmo == 0)
             {
-                currentDeviation -= deviationDecreaseModifier;
+                isReloading = true;
+                currentAmmo = -1;
+                reloadTimeRemaining = reloadTime;
+                cooldownTimeRemaining = 0.0f;
+                counterText.text = "Reloading";
+            }
+            if (!isAutomatic && !Input.GetMouseButton(0) && cooldownTimeRemaining <= delta)
+            {
+                semiautoReadyToFire = true;
             }
 
-            currentDeviation = Mathf.Clamp(currentDeviation, 0.0f, currentMaxDeviation);
+            if (isActive)
+            {
+                if (!isReloading)
+                {
+                    if(cooldownTimeRemaining > delta)
+                    {
+                        cooldownTimeRemaining -= Time.deltaTime;
+                    }
+                    else if (!Input.GetMouseButton(0) && !Input.GetMouseButtonDown(0))
+                    {
+                        currentDeviation -= deviationDecreaseModifier;
+                    }
+                    else if((isAutomatic || semiautoReadyToFire) && cooldownTimeRemaining <= delta)
+                    {
+                        playerShoot.FindProjectileTarget(ref target);
+                        Shoot();
+                    }
+
+                    currentDeviation = Mathf.Clamp(currentDeviation, 0.0f, currentMaxDeviation);
+                }
+                else
+                {
+                    //Debug.Log("Reloading");
+                    reloadTimeRemaining -= Time.deltaTime;
+                    counter.fillAmount = 1.0f - (reloadTimeRemaining / reloadTime);
+
+                    if (reloadTimeRemaining <= delta)
+                    {
+                        isReloading = false;
+                        currentAmmo = maxAmmo;
+                        counter.fillAmount = currentAmmo / maxAmmo;
+                        counterText.text = currentAmmo.ToString();
+                    }
+                }
+            }
+        }
+        else
+        {
+            swapTimeRemaining -= Time.deltaTime;
         }
     }
 
     // Need to change to object pooling
-    public void Shoot(Vector3 spawnPoint, Quaternion direction)
+    public void Shoot()
     {
         currentDeviation += deviationIncreaseModifier;
-        GameObject projectile = Instantiate(projectilePrefab, spawnPoint, direction * Quaternion.Euler(Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f)));   // Not so sure about generating 3 random numbers here, performance wise. Maybe change this later.
+        GameObject projectile = Instantiate(projectilePrefab, projectileSpawnPoint.transform.position, Quaternion.identity);   // Not so sure about generating 3 random numbers here, performance wise. Maybe change this later.
         Rigidbody projRB = projectile.GetComponent<Rigidbody>();
+        projRB.transform.LookAt(target);
+        projRB.transform.Rotate(Quaternion.Euler(Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f)).eulerAngles);
         projRB.velocity = projRB.transform.forward.normalized * maxVelocity;
         if (!isAutomatic)
         {
             semiautoReadyToFire = false;
+        }
+
+        cooldownTimeRemaining = cooldownTime;
+
+        currentAmmo--;
+        counter.fillAmount = currentAmmo / maxAmmo;
+        counterText.text = currentAmmo.ToString();
+    }
+
+    public void SwitchToWeapon()
+    {
+        isActive = true;
+        cooldownTimeRemaining = 0.0f;
+        swapTimeRemaining = swapTime;
+        counter.fillAmount = currentAmmo / maxAmmo;
+        counterText.text = currentAmmo.ToString();
+        if (isReloading)
+        {
+            counter.fillAmount = 1.0f - (reloadTimeRemaining / reloadTime);
+            counterText.text = "Reloading";
         }
     }
 }
