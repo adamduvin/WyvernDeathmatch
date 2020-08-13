@@ -36,20 +36,22 @@ public class Projectile : MonoBehaviour
         
     }*/
 
-    private void OnTriggerEnter(Collider other)
+    private void OnCollisionEnter(Collision collision)
     {
         //Debug.Log(other.name);
         // Remember to change case values if layers get changed
-        switch (other.gameObject.layer)
+        //Debug.Log("Collision with " + collision.GetContact(0).otherCollider.name);
+        //Debug.Log(collision.GetContact(0).otherCollider.GetComponent<TerrainCollider>().attachedRigidbody);
+        switch (collision.collider.gameObject.layer)
         {
             case 8:
-                other.GetComponent<PlayerCore>().TakeDamage(impactDamage, damageType);
-                createAreaOfEffect();
-                Destroy(gameObject);
+                collision.collider.GetComponent<PlayerCore>().TakeDamage(impactDamage, damageType);
+                createAreaOfEffect(collision.GetContact(0).point);
+                gameObject.SetActive(false);
                 break;
             case 9:
-                createAreaOfEffect();
-                Destroy(gameObject);
+                createAreaOfEffect(collision.GetContact(0).point);
+                gameObject.SetActive(false);
                 break;
             default:
                 break;
@@ -61,19 +63,24 @@ public class Projectile : MonoBehaviour
         switch (other.gameObject.layer)
         {
             case 10:
-                //Debug.Log("Exit");
-                Destroy(gameObject);
+                gameObject.SetActive(false);
                 break;
             default:
                 break;
         }
     }
 
-    public void createAreaOfEffect()
+    public void createAreaOfEffect(Vector3 impactPoint)
     {
         if (areaOfEffectDiameter > delta)
         {
-            Instantiate(areaOfEffectPrototype, transform.position, Quaternion.identity);
+            Instantiate(areaOfEffectPrototype, impactPoint, Quaternion.identity);
         }
     }
+    /*
+    private void ResetProjectile()
+    {
+        gameObject.SetActive(false);
+    }
+    */
 }

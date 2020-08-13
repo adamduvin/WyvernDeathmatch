@@ -40,13 +40,17 @@ public class PlayerShoot : MonoBehaviour
     private void Start()
     {
         maskExcludeSoftBoundary =~ LayerMask.GetMask("SoftBoundary");
+        currentWeapon = weapons[0];
+        currentWeapon.MakeWeaponActive();
     }
 
     void OnEnable()
     {
-        currentWeaponIndex = -1;
-        currentWeapon = weapons[0];
-        LoadNextWeapon();
+        //currentWeaponIndex = -1;
+        /*currentWeapon = weapons[0];
+        currentWeapon.MakeWeaponActive();*/
+        Debug.Log(currentWeapon.maxAmmo);
+        //LoadNextWeapon();
         //projectileSpawnPoint = playerCamera.transform.forward * distance;
     }
 

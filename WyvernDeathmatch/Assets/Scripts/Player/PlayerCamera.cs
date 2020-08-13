@@ -92,6 +92,9 @@ public class PlayerCamera : MonoBehaviour
 
     private LayerMask maskExcludeProjectiles;
 
+    [SerializeField]
+    private float maxDistance = 5.0f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -185,8 +188,14 @@ public class PlayerCamera : MonoBehaviour
     {
         movementTarget = playerTransform.transform.position;
         GetComponent<Camera>().fieldOfView = currentFOV;
+        Vector3 targetToCamera = movementTarget - transform.position;
+        /*if (Vector3.Magnitude(targetToCamera) > maxDistance)
+        {
+            transform.position = movementTarget - (targetToCamera.normalized * maxDistance);
+        }*/
+
         transform.position = Vector3.Lerp(transform.position, movementTarget, movementSmoothing);
-        if (Vector3.Magnitude(transform.position - movementTarget) <= delta)
+        if (Vector3.Magnitude(targetToCamera) <= delta)
         {
             transform.position = movementTarget;
         }

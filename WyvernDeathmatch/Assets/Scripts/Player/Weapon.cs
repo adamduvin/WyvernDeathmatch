@@ -48,25 +48,32 @@ public class Weapon : MonoBehaviour
     private Text counterText;
 
     private bool isReloading = false;
-    
+
+    #region Projectile Object Pool
+    private int poolIndex = 0;
+    private GameObject[] projectiles;
+    #endregion
 
     void OnEnable()
     {
         currentDeviation = 0.0f;
         currentMaxDeviation = maxDeviation;
         currentAmmo = maxAmmo;
-        if(counter.fillAmount <= 0)
+        // Instantiate projectiles and add them to the list
+        /*if(counter.fillAmount <= 0)
         {
+            Debug.Log(currentAmmo);
             counter.fillAmount = currentAmmo / maxAmmo;
             counterText.text = currentAmmo.ToString();
-        }
-
+        }*/
     }
 
     // Start is called before the first frame update
     void Start()
     {
         playerShoot = GetComponent<PlayerShoot>();
+        projectiles = new GameObject[(int)maxAmmo];
+        CreateProjectiles();
     }
 
     // Update is called once per frame
@@ -134,7 +141,9 @@ public class Weapon : MonoBehaviour
     public void Shoot()
     {
         currentDeviation += deviationIncreaseModifier;
-        GameObject projectile = Instantiate(projectilePrefab, projectileSpawnPoint.transform.position, Quaternion.identity);   // Not so sure about generating 3 random numbers here, performance wise. Maybe change this later.
+        GameObject projectile = projectiles[poolIndex]; //Instantiate(projectilePrefab, projectileSpawnPoint.transform.position, Quaternion.identity);   // Not so sure about generating 3 random numbers here, performance wise. Maybe change this later.
+        projectile.SetActive(true);
+        projectile.transform.position = projectileSpawnPoint.transform.position;
         Rigidbody projRB = projectile.GetComponent<Rigidbody>();
         projRB.transform.LookAt(target);
         projRB.transform.Rotate(Quaternion.Euler(Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f)).eulerAngles);
@@ -149,19 +158,37 @@ public class Weapon : MonoBehaviour
         currentAmmo--;
         counter.fillAmount = currentAmmo / maxAmmo;
         counterText.text = currentAmmo.ToString();
+
+        poolIndex++;
+        poolIndex %= (int)maxAmmo;
+    }
+
+    public void MakeWeaponActive()
+    {
+        isActive = true;
+        cooldownTimeRemaining = 0.0f;
+        counter.fillAmount = currentAmmo / maxAmmo;
+        counterText.text = currentAmmo.ToString();
     }
 
     public void SwitchToWeapon()
     {
-        isActive = true;
-        cooldownTimeRemaining = 0.0f;
+        MakeWeaponActive();
         swapTimeRemaining = swapTime;
-        counter.fillAmount = currentAmmo / maxAmmo;
-        counterText.text = currentAmmo.ToString();
         if (isReloading)
         {
             counter.fillAmount = 1.0f - (reloadTimeRemaining / reloadTime);
             counterText.text = "Reloading";
+        }
+    }
+
+    private void CreateProjectiles()
+    {
+        for(int i = 0; i < projectiles.Length; i++)
+        {
+            GameObject projectile = Instantiate(projectilePrefab);
+            projectiles[i] = projectile;
+            projectile.SetActive(false);
         }
     }
 }

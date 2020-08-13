@@ -15,6 +15,12 @@ This game is a third-person multiplayer shooter with flight mechanics. Players h
 - Switch Weapons - SCROLL UP/DOWN
 
 ### Future Plans
+- Revise movement, camera, and shooting systems.
+    - Fix jerky camera movement.
+    - Simplify movement, especially removing unused variables and renaming used variables to make more sense.
+    - Change weapon implementation to allow for easier weapon creation.
+    - Fix bug that makes second weapon's ammo count appear on scene load.
+    - ADS will affect spread.
 - Code refactoring, comments, and cleanup.
 - Add player spawning and death.
 - Remove projectile spawning and use an object pool instead.
@@ -23,6 +29,10 @@ This game is a third-person multiplayer shooter with flight mechanics. Players h
 
 
 ### Change History (Organized By Date)
+#### 7/27/2020
+- Implemented object pools for player projectiles.
+- Fixed a bug where continuing to sprint after stamina reaches zero would result in the player continuing to sprint with no stamina regeneration. Reaching zero stamina now invokes a wait-time before you can begin sprinting again.
+
 #### 7/08/2020
 - Player no longer transitions to onGround state if they hit the side of a landable object.
 - Player now smoothly descends slopes.

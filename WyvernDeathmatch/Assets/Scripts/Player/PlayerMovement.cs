@@ -32,6 +32,11 @@ public class PlayerMovement : MonoBehaviour
     private float walkSpeedGround;
 
     [SerializeField]
+    private float oversprintCooldown = 2;
+    [SerializeField]
+    private float oversprintTimer = 0;
+
+    [SerializeField]
     private float speedAir;
     [SerializeField]
     private float sprintSpeedAir;
@@ -168,6 +173,7 @@ public class PlayerMovement : MonoBehaviour
     // ToDo: Change direction to move toward crosshair. Right now, it's hard to tell where the character is going. May need to use some arbitrary point.
     private void MovePlayer()
     {
+        //Debug.Log("1: " + currentGravity);
         Sprint();
 
         playerCamera.LastPlayerPosition = transform.position;
@@ -185,7 +191,7 @@ public class PlayerMovement : MonoBehaviour
                     playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate;
                 }
                 velocity.y = 0.0f;
-                playerCore.Stamina += playerCore.StaminaReplenishRate;
+                //playerCore.Stamina += playerCore.StaminaReplenishRate;
                 break;
             case PlayerState.OnGround:
                 velocity.y = 0.0f;
@@ -209,7 +215,9 @@ public class PlayerMovement : MonoBehaviour
             velocity.y = DescendSlope().y - transform.position.y;
         }
 
+        //Debug.Log("2: " + currentGravity);
         Jump();
+        //Debug.Log("3: " + currentGravity);
         velocity += Vector3.up * -currentGravity;
 
         characterController.Move(velocity * Time.deltaTime);
@@ -251,7 +259,14 @@ public class PlayerMovement : MonoBehaviour
                 case PlayerState.Falling:
                 case PlayerState.Jumping:
                     playerState = PlayerState.InAir;
-                    currentSpeed = speedAir;
+                    if (!Input.GetKey(KeyCode.LeftShift))
+                    {
+                        currentSpeed = speedAir;
+                    }
+                    else
+                    {
+                        currentSpeed = sprintSpeedAir;
+                    }
                     currentSpeedVertical = speedVerticalAir;
                     currentTurningSpeed = turningSpeedAir;
                     currentGravity = 0.0f;
@@ -298,7 +313,14 @@ public class PlayerMovement : MonoBehaviour
             if (playerState != PlayerState.OnGround)
             {
                 playerState = PlayerState.OnGround;
-                currentSpeed = speedGround;
+                if (!Input.GetKey(KeyCode.LeftShift))
+                {
+                    currentSpeed = speedGround;
+                }
+                else
+                {
+                    currentSpeed = sprintSpeedGround;
+                }
                 currentSpeedVertical = speedVerticalGround;
                 currentTurningSpeed = turningSpeedGround;
                 currentGravity = gravity;
@@ -309,66 +331,80 @@ public class PlayerMovement : MonoBehaviour
 
     private void Sprint()
     {
-        if (Input.GetKeyDown(KeyCode.LeftShift))
+        // Need to change this so you can sprint in air still
+        if(oversprintTimer <= delta)
         {
-            switch (playerState)
+            if (Input.GetKeyDown(KeyCode.LeftShift))
             {
-                case PlayerState.OnGround:
-                    if (playerCore.Stamina >= delta)
-                    {
-                        currentSpeed = sprintSpeedGround;
-                    }
-                    break;
-                case PlayerState.InAir:
-                    if (playerCore.FlightStamina >= delta)
-                    {
-                        currentSpeed = sprintSpeedAir;
-                    }
-                    break;
+                switch (playerState)
+                {
+                    case PlayerState.OnGround:
+                        if (playerCore.Stamina >= delta)
+                        {
+                            currentSpeed = sprintSpeedGround;
+                        }
+                        break;
+                    case PlayerState.InAir:
+                        if (playerCore.FlightStamina >= delta)
+                        {
+                            currentSpeed = sprintSpeedAir;
+                        }
+                        break;
+                }
+            }
+            else if (Input.GetKey(KeyCode.LeftShift) && characterController.velocity.magnitude >= delta)
+            {
+                switch (playerState)
+                {
+                    case PlayerState.OnGround:
+                        if (playerCore.Stamina >= delta)
+                        {
+                            playerCore.Stamina -= playerCore.StaminaConsumptionRate * Time.deltaTime;
+                            if (playerCore.Stamina <= delta)
+                            {
+                                oversprintTimer = oversprintCooldown;
+                                currentSpeed = speedGround;
+                            }
+                        }
+                        break;
+                    case PlayerState.InAir:
+                        if (playerCore.FlightStamina >= delta)
+                        {
+                            playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate * Time.deltaTime;
+                        }
+                        break;
+                }
+            }
+            else if (Input.GetKeyUp(KeyCode.LeftShift))
+            {
+                switch (playerState)
+                {
+                    case PlayerState.OnGround:
+                        currentSpeed = speedGround;
+                        break;
+                    case PlayerState.InAir:
+                        currentSpeed = speedAir;
+                        break;
+                }
+            }
+            else if (!Input.GetKey(KeyCode.LeftShift))
+            {
+                switch (playerState)
+                {
+                    case PlayerState.OnGround:
+                        playerCore.FlightStamina += playerCore.FlightStaminaReplenishRate * Time.deltaTime;
+                        playerCore.Stamina += playerCore.StaminaReplenishRate * Time.deltaTime;
+                        break;
+                    default:
+                        playerCore.Stamina += playerCore.StaminaReplenishRate * Time.deltaTime;
+                        break;
+                }
             }
         }
-        else if (Input.GetKey(KeyCode.LeftShift) && characterController.velocity.magnitude >= delta)
+        else
         {
-            switch (playerState)
-            {
-                case PlayerState.OnGround:
-                    if (playerCore.Stamina >= delta)
-                    {
-                        playerCore.Stamina -= playerCore.StaminaConsumptionRate;
-                    }
-                    break;
-                case PlayerState.InAir:
-                    if (playerCore.FlightStamina >= delta)
-                    {
-                        playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate;
-                    }
-                    break;
-            }
-        }
-        else if (Input.GetKeyUp(KeyCode.LeftShift))
-        {
-            switch (playerState)
-            {
-                case PlayerState.OnGround:
-                    currentSpeed = speedGround;
-                    break;
-                case PlayerState.InAir:
-                    currentSpeed = speedAir;
-                    break;
-            }
-        }
-        else if (!Input.GetKey(KeyCode.LeftShift))
-        {
-            switch (playerState)
-            {
-                case PlayerState.OnGround:
-                    playerCore.FlightStamina += playerCore.FlightStaminaReplenishRate;
-                    playerCore.Stamina += playerCore.StaminaReplenishRate;
-                    break;
-                default:
-                    playerCore.Stamina += playerCore.StaminaReplenishRate;
-                    break;
-            }
+            playerCore.Stamina += playerCore.StaminaReplenishRate * Time.deltaTime;
+            oversprintTimer -= Time.deltaTime;
         }
     }
 
