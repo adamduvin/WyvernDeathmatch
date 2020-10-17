@@ -127,3 +127,5 @@ MonoBehaviour:
   damageType: 0
   areaOfEffectPrototype: {fileID: 5743338381550647779, guid: af754ac73473e444fab60224889828fa,
     type: 3}
+  velocity: {x: 0, y: 0, z: 0}
+  gravityModifier: 1

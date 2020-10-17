@@ -110,6 +110,7 @@ public class Weapon : MonoBehaviour
                     else if((isAutomatic || semiautoReadyToFire) && cooldownTimeRemaining <= delta)
                     {
                         playerShoot.FindProjectileTarget(ref target);
+                        //playerShoot.FindProjectileTarget(ref target, playerShoot.PlayerCamera, playerShoot.PlayerCamera.transform.forward, playerShoot.PlayerCamera);
                         Shoot();
                     }
 
@@ -143,11 +144,12 @@ public class Weapon : MonoBehaviour
         currentDeviation += deviationIncreaseModifier;
         GameObject projectile = projectiles[poolIndex]; //Instantiate(projectilePrefab, projectileSpawnPoint.transform.position, Quaternion.identity);   // Not so sure about generating 3 random numbers here, performance wise. Maybe change this later.
         projectile.SetActive(true);
-        projectile.transform.position = projectileSpawnPoint.transform.position;
+        projectile.GetComponent<Projectile>().Shoot(projectileSpawnPoint, target, currentDeviation, maxVelocity);
+        /*projectile.transform.position = projectileSpawnPoint.transform.position;
         Rigidbody projRB = projectile.GetComponent<Rigidbody>();
         projRB.transform.LookAt(target);
         projRB.transform.Rotate(Quaternion.Euler(Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f)).eulerAngles);
-        projRB.velocity = projRB.transform.forward.normalized * maxVelocity;
+        projRB.velocity = projRB.transform.forward.normalized * maxVelocity;*/
         if (!isAutomatic)
         {
             semiautoReadyToFire = false;

@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using UnityEngine;
+using UnityEngine.UI;
 using static Globals;
 
 enum PlayerState
@@ -17,12 +19,36 @@ enum MovementSpeed
 {
     Running = 0,
     Sprinting = 1,
-    Walking = 2     // Might change to crouching if we want to do that
+    Walking = 2     // Might change to crouching if I want to do that
 }
 
 public class PlayerMovement : MonoBehaviour
 {
-    private Vector3 currentVelocity;
+    [SerializeField]
+    private float maxStamina;
+    private float stamina;
+    [SerializeField]
+    private float staminaConsumptionRate;
+    [SerializeField]
+    private float staminaReplenishRate;
+    [SerializeField]
+    private Image staminaBar;
+    [SerializeField]
+    private float staminaLerpPercent;
+
+    [SerializeField]
+    private float maxFlightStamina;
+    private float flightStamina;
+    [SerializeField]
+    private float flightStaminaConsumptionRate;
+    [SerializeField]
+    private float flightStaminaSprintConsumptionRate;
+    [SerializeField]
+    private float flightStaminaReplenishRate;
+    [SerializeField]
+    private Image flightStaminaBar;
+    [SerializeField]
+    private float flightStaminaLerpPercent;
 
     [SerializeField]
     private float speedGround;
@@ -46,9 +72,6 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField]
     private float currentSpeed;
 
-    private float currentMaxSpeed;
-    private float currentMaxForce;
-
     [SerializeField]
     private float speedVerticalGround;
 
@@ -57,9 +80,8 @@ public class PlayerMovement : MonoBehaviour
 
     private float currentSpeedVertical;
 
-    private int jumpModifier = 0;
-
-    private Vector3 currentVerticalMovement;
+    [SerializeField]
+    private float fallingMovementSpeed;
 
     [SerializeField]
     private bool pressedCTRLOnce = false;
@@ -67,39 +89,11 @@ public class PlayerMovement : MonoBehaviour
     private float dropTimerLeft = 0.0f;
 
     [SerializeField]
-    private float turningSpeedGround;
-
-    public float TurningSpeedGround
-    {
-        get { return turningSpeedGround; }
-    }
-
-    [SerializeField]
-    private float turningSpeedAir;
-
-    public float TurningSpeedAir
-    {
-        get { return turningSpeedAir; }
-    }
-
-    private float currentTurningSpeed;
-
-    [SerializeField]
     private Vector3 velocity;
-
-    [SerializeField]
-    [Range(0.0f, 1.0f)]
-    private float rotationSmoothing = 0.5f;
 
     private PlayerState playerState;
 
-    //private AirDodge airDodge;
-
-    //private Rigidbody rb;
     private CharacterController characterController;
-
-    [SerializeField]
-    private PlayerCamera playerCamera;        // Instantiate this in start with a prefab
 
     [SerializeField]
     private bool isRotatingWithCamera = true;
@@ -108,20 +102,12 @@ public class PlayerMovement : MonoBehaviour
         get { return isRotatingWithCamera; }
     }
 
-    private float rotationAmount;
-
     [SerializeField]
     private float gravity;
     [SerializeField]
     private float groundGravity;
 
     private float currentGravity;
-
-    private PlayerCore playerCore;
-
-    #region Raycast Origins
-    private Vector3 front, back, right, left;
-    #endregion
 
     [SerializeField]
     private float maxDescentSlopeAngle = 80.0f;
@@ -135,22 +121,15 @@ public class PlayerMovement : MonoBehaviour
     { 
         playerState = PlayerState.InAir;
         characterController = GetComponent<CharacterController>();
-        rotationAmount = delta;
-        playerCore = GetComponent<PlayerCore>();
         landableMask = LayerMask.GetMask("LandableSurface");
-
-        //airDodge = GetComponent<AirDodge>();
-
-        // Temp
-        currentTurningSpeed = turningSpeedAir;
         currentSpeed = speedAir;
         currentSpeedVertical = speedVerticalAir;
         currentGravity = 0.0f;
-        currentVerticalMovement = Vector3.zero;
 
         lastCollisionPoint = Vector3.zero;
 
-        // Make a camera for the player
+        stamina = maxStamina;
+        flightStamina = maxFlightStamina;
     }
 
     // Update is called once per frame
@@ -165,70 +144,88 @@ public class PlayerMovement : MonoBehaviour
                 pressedCTRLOnce = false;
             }
         }
-        // Change transition to falling/onGround to factor in whether or not the player is grounded
-        // Debug.Log(characterController.isGrounded);
+        staminaBar.fillAmount = Mathf.Lerp(staminaBar.fillAmount, stamina / 100f, staminaLerpPercent * Time.deltaTime);
+        flightStaminaBar.fillAmount = Mathf.Lerp(flightStaminaBar.fillAmount, flightStamina / 100f, flightStaminaLerpPercent * Time.deltaTime);
     }
 
-    // Note for later: Maybe only use physics-based movement for aerial movement
-    // ToDo: Change direction to move toward crosshair. Right now, it's hard to tell where the character is going. May need to use some arbitrary point.
-    private void MovePlayer()
+    // Handles player movement
+    public void MovePlayer()
     {
-        //Debug.Log("1: " + currentGravity);
-        Sprint();
-
-        playerCamera.LastPlayerPosition = transform.position;
-
         switch (playerState)
         {
             case PlayerState.InAir:
-                if(playerCore.FlightStamina < delta)
+                AirSprint();
+
+                velocity = new Vector3(0.0f, 0.0f, 0.0f);
+                velocity += transform.forward * Input.GetAxis("Vertical") * currentSpeed;
+                velocity += transform.right * Input.GetAxis("Horizontal") * currentSpeed;
+
+                if (Input.GetKey(KeyCode.Space))
                 {
-                    playerState = PlayerState.Falling;
-                    currentGravity = gravity;
+                    Ascend(speedVerticalAir);
                 }
-                else
+                else if (Input.GetKey(KeyCode.LeftControl))
                 {
-                    playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate;
+                    Descend(speedVerticalAir);
                 }
-                velocity.y = 0.0f;
-                //playerCore.Stamina += playerCore.StaminaReplenishRate;
                 break;
             case PlayerState.OnGround:
                 velocity.y = 0.0f;
-                playerCore.FlightStamina += playerCore.FlightStaminaReplenishRate;
+
+                if (!characterController.isGrounded)
+                {
+                    playerState = PlayerState.Falling;
+                    currentSpeed = fallingMovementSpeed;
+                    currentGravity = gravity;
+                    break;
+                }
+
+                GroundSprint();
+                velocity = new Vector3(0.0f, velocity.y, 0.0f);
+                velocity += transform.forward * Input.GetAxis("Vertical") * currentSpeed;
+                velocity += transform.right * Input.GetAxis("Horizontal") * currentSpeed;
+
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    Ascend(speedVerticalGround);
+                    playerState = PlayerState.Jumping;
+                }
+
+                velocity += Vector3.up * -currentGravity;
+
+                if (!Input.GetKey(KeyCode.Space))
+                {
+                    velocity.y = DescendSlope().y - transform.position.y;
+                }
+                break;
+            case PlayerState.Jumping:
+            case PlayerState.Falling:
+                velocity += Vector3.up * -currentGravity;
+                velocity = new Vector3(0.0f, velocity.y, 0.0f);
+                velocity += transform.forward * Input.GetAxis("Vertical") * currentSpeed;
+                velocity += transform.right * Input.GetAxis("Horizontal") * currentSpeed;
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    if(flightStamina > 0.0f)
+                    {
+                        playerState = PlayerState.InAir;
+                        currentSpeed = speedAir;
+                        currentGravity = 0.0f;
+                    }
+                }
                 break;
         }
-        
-        /*if(playerState == PlayerState.InAir || playerState == PlayerState.OnGround)
-        {
-            velocity.y = 0.0f;
-        }*/
-
-        velocity = new Vector3(0.0f, velocity.y, 0.0f);
-        velocity += transform.forward * Input.GetAxis("Vertical") * currentSpeed;
-        velocity += transform.right * Input.GetAxis("Horizontal") * currentSpeed;
-
-        // Descending slope
-        if(playerState == PlayerState.OnGround && !Input.GetKey(KeyCode.Space))
-        {
-            UpdateOrigins();
-            velocity.y = DescendSlope().y - transform.position.y;
-        }
-
-        //Debug.Log("2: " + currentGravity);
-        Jump();
-        //Debug.Log("3: " + currentGravity);
-        velocity += Vector3.up * -currentGravity;
 
         characterController.Move(velocity * Time.deltaTime);
     }
 
-    public void RotatePlayer(bool isADS)
+    // Handles player rotation
+    public void RotatePlayer(bool isADS, Quaternion cameraRotation, float rotationSmoothing)
     {
         if(isRotatingWithCamera || isADS || characterController.velocity.magnitude >= delta)
         {
-            Quaternion rotationTarget = playerCamera.transform.rotation;
-            transform.rotation = Quaternion.Lerp(transform.rotation, rotationTarget, playerCamera.rotationSmoothing);
+            Quaternion rotationTarget = cameraRotation;
+            transform.rotation = Quaternion.Lerp(transform.rotation, rotationTarget, rotationSmoothing);
             if(Quaternion.Angle(transform.rotation, rotationTarget) < delta)
             {
                 transform.rotation = rotationTarget;
@@ -241,70 +238,37 @@ public class PlayerMovement : MonoBehaviour
                 transform.rotation = Quaternion.Euler(tempRotation);
             }
         }
-        MovePlayer();
     }
 
-    private void Jump()
+    // Moves player upwards (used in the air and on the ground to jump)
+    private void Ascend(float verticalSpeed)
     {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            velocity += Vector3.up * Input.GetAxis("Jump") * currentSpeedVertical;
+        velocity += Vector3.up * Input.GetAxis("Jump") * currentSpeedVertical;
+    }
 
-            switch (playerState)
-            {
-                case PlayerState.OnGround:
-                    playerState = PlayerState.Jumping;
-                    currentSpeedVertical = 0.0f;
-                    break;
-                case PlayerState.Falling:
-                case PlayerState.Jumping:
-                    playerState = PlayerState.InAir;
-                    if (!Input.GetKey(KeyCode.LeftShift))
-                    {
-                        currentSpeed = speedAir;
-                    }
-                    else
-                    {
-                        currentSpeed = sprintSpeedAir;
-                    }
-                    currentSpeedVertical = speedVerticalAir;
-                    currentTurningSpeed = turningSpeedAir;
-                    currentGravity = 0.0f;
-                    currentSpeedVertical = speedVerticalAir;
-                    break;
-                default:
-                    break;
-            }
-        }
-        else if ((Input.GetKey(KeyCode.Space) || Input.GetKey(KeyCode.LeftControl)) && playerState == PlayerState.InAir)
+    // Moves player downwards
+    private void Descend(float verticalSpeed)
+    {
+        velocity += Vector3.up * Input.GetAxis("Jump") * currentSpeedVertical;
+
+        if (Input.GetKeyDown(KeyCode.LeftControl))
         {
             if (!pressedCTRLOnce)
             {
-                if (Input.GetKeyDown(KeyCode.LeftControl)){
-                    pressedCTRLOnce = true;
-                    dropTimerLeft = dropTimer;
-                }
+                pressedCTRLOnce = true;
+                dropTimerLeft = dropTimer;
             }
             else
             {
-                if (Input.GetKeyDown(KeyCode.LeftControl))
-                {
-                    pressedCTRLOnce = false;
-                    playerState = PlayerState.Falling;
-                    currentGravity = gravity;
-                }
-            }
-            velocity += Vector3.up * Input.GetAxis("Jump") * currentSpeedVertical;
-        }
-        if(playerState == PlayerState.OnGround)
-        {
-            if (!characterController.isGrounded)
-            {
+                pressedCTRLOnce = false;
                 playerState = PlayerState.Falling;
+                currentSpeed = fallingMovementSpeed;
+                currentGravity = gravity;
             }
         }
     }
 
+    // Detects if the player has landed on a surface that can be landed on and transitions them to the OnGround state
     void OnControllerColliderHit(ControllerColliderHit hit)
     {
         // Need to update once animations are added to handle taking off and landing
@@ -322,101 +286,101 @@ public class PlayerMovement : MonoBehaviour
                     currentSpeed = sprintSpeedGround;
                 }
                 currentSpeedVertical = speedVerticalGround;
-                currentTurningSpeed = turningSpeedGround;
                 currentGravity = gravity;
-                lastCollisionPoint = hit.point;
+                lastCollisionPoint = hit.point - transform.position;
             }
         }
     }
 
-    private void Sprint()
+    // General sprint method that handles movement speed, stamina consumption, and stamina replenishment
+    private void Sprint(ref float staminaUsed, float maxStaminaUsed, float staminaUsedConsumptionRate, float staminaUsedReplenishRate, ref float staminaNotUsed, float maxStaminaNotUsed, float staminaNotUsedReplenishRate, float regularSpeed, float sprintSpeed)
     {
-        // Need to change this so you can sprint in air still
-        if(oversprintTimer <= delta)
+        if (Input.GetKeyDown(KeyCode.LeftShift))
         {
-            if (Input.GetKeyDown(KeyCode.LeftShift))
+            currentSpeed = sprintSpeed;
+        }
+        else if(Input.GetKey(KeyCode.LeftShift))
+        {
+            if(characterController.velocity.magnitude > 0.0f)
             {
-                switch (playerState)
-                {
-                    case PlayerState.OnGround:
-                        if (playerCore.Stamina >= delta)
-                        {
-                            currentSpeed = sprintSpeedGround;
-                        }
-                        break;
-                    case PlayerState.InAir:
-                        if (playerCore.FlightStamina >= delta)
-                        {
-                            currentSpeed = sprintSpeedAir;
-                        }
-                        break;
-                }
+                staminaUsed -= staminaUsedConsumptionRate * Time.deltaTime;
             }
-            else if (Input.GetKey(KeyCode.LeftShift) && characterController.velocity.magnitude >= delta)
+            else
             {
-                switch (playerState)
-                {
-                    case PlayerState.OnGround:
-                        if (playerCore.Stamina >= delta)
-                        {
-                            playerCore.Stamina -= playerCore.StaminaConsumptionRate * Time.deltaTime;
-                            if (playerCore.Stamina <= delta)
-                            {
-                                oversprintTimer = oversprintCooldown;
-                                currentSpeed = speedGround;
-                            }
-                        }
-                        break;
-                    case PlayerState.InAir:
-                        if (playerCore.FlightStamina >= delta)
-                        {
-                            playerCore.FlightStamina -= playerCore.FlightStaminaConsumptionRate * Time.deltaTime;
-                        }
-                        break;
-                }
-            }
-            else if (Input.GetKeyUp(KeyCode.LeftShift))
-            {
-                switch (playerState)
-                {
-                    case PlayerState.OnGround:
-                        currentSpeed = speedGround;
-                        break;
-                    case PlayerState.InAir:
-                        currentSpeed = speedAir;
-                        break;
-                }
-            }
-            else if (!Input.GetKey(KeyCode.LeftShift))
-            {
-                switch (playerState)
-                {
-                    case PlayerState.OnGround:
-                        playerCore.FlightStamina += playerCore.FlightStaminaReplenishRate * Time.deltaTime;
-                        playerCore.Stamina += playerCore.StaminaReplenishRate * Time.deltaTime;
-                        break;
-                    default:
-                        playerCore.Stamina += playerCore.StaminaReplenishRate * Time.deltaTime;
-                        break;
-                }
+                ReplenishStamina(ref staminaUsed, maxStaminaUsed, staminaUsedReplenishRate);
             }
         }
+        else if (Input.GetKeyUp(KeyCode.LeftShift))
+        {
+            currentSpeed = regularSpeed;
+        }
+        ReplenishStamina(ref staminaNotUsed, maxStaminaNotUsed, staminaNotUsedReplenishRate);
+    }
+
+    // Calls sprint method and handles sprinting behavior specific to the OnGround state
+    private void GroundSprint()
+    {
+        if(oversprintTimer <= 0.0f)
+        {
+            Sprint(ref stamina, maxStamina, staminaConsumptionRate, staminaReplenishRate, ref flightStamina, maxFlightStamina, flightStaminaReplenishRate, speedGround, sprintSpeedGround);
+            if(stamina <= 0.0f)
+            {
+                stamina = 0.0f;
+                oversprintTimer = oversprintCooldown;
+                currentSpeed = speedGround;
+            }
+        }
+        
         else
         {
-            playerCore.Stamina += playerCore.StaminaReplenishRate * Time.deltaTime;
             oversprintTimer -= Time.deltaTime;
+            ReplenishStamina(ref stamina, maxStamina, staminaReplenishRate);
+            ReplenishStamina(ref flightStamina, maxFlightStamina, flightStaminaReplenishRate);      // Necessary because the Sprint method usually replenishes stamina. If Sprint can't be called, ground stamina and flight stamina cannot regenerate
+        }
+        if (!Input.GetKey(KeyCode.LeftShift))
+        {
+            ReplenishStamina(ref stamina, maxStamina, staminaReplenishRate);
         }
     }
 
-    private void UpdateOrigins()
+    // Calls sprint method and handles sprinting behavior specific to the InAir state
+    private void AirSprint()
     {
-        // Need to find out how to get right and left from velocity
-        front = transform.position + (velocity.normalized * (characterController.radius - characterController.skinWidth));
-        back = transform.position + (-velocity.normalized * (characterController.radius - characterController.skinWidth));
-        right = transform.position + ((Quaternion.AngleAxis(90.0f, transform.up) * new Vector3(velocity.x, 0.0f, velocity.z).normalized) * (characterController.radius - characterController.skinWidth));
-        left = transform.position + (-(Quaternion.AngleAxis(90.0f, transform.up) * new Vector3(velocity.x, 0.0f, velocity.z).normalized) * (characterController.radius - characterController.skinWidth));
+        if(flightStamina > 0.0f)
+        {
+            Sprint(ref flightStamina, maxFlightStamina, flightStaminaSprintConsumptionRate, flightStaminaReplenishRate, ref stamina, maxStamina, staminaReplenishRate, speedAir, sprintSpeedAir);
+            if (!Input.GetKey(KeyCode.LeftShift))
+            {
+                flightStamina -= flightStaminaConsumptionRate * Time.deltaTime;
+            }
+            if (flightStamina <= 0.0f)
+            {
+                Debug.Log("Falling");
+                flightStamina = 0.0f;
+                playerState = PlayerState.Falling;
+                currentSpeed = fallingMovementSpeed;
+                currentGravity = gravity;
+                velocity.y = 0.0f;
+            }
+        }
     }
 
+    // Replenishes a given stamina type by a given replenishment rate up to a given max
+    private void ReplenishStamina(ref float stamina, float maxStamina, float staminaReplenishRate)
+    {
+        if (stamina > maxStamina)
+        {
+            stamina = maxStamina;
+        }
+        else if (stamina < maxStamina)
+        {
+            stamina += staminaReplenishRate * Time.deltaTime;
+        }
+    }
+
+    // Detects slope of the surface a player is moving on and sticks the player to the surface to create a smooth descent.
+    // Note: This algorithm doesn't like negative y values. I could spend time trying to fix it, or I could just raise every level by 100 units and the problem goes away.
+    // Clarification: I'm not fixing this, just raise the level by 100 units.
     private Vector3 DescendSlope()
     {
         float directionZ = Mathf.Sign(velocity.z);
@@ -425,51 +389,21 @@ public class PlayerMovement : MonoBehaviour
         RaycastHit hit = new RaycastHit();
         Vector3 output = Vector3.zero;
 
-        // Need to find angle and see if descending
-        /*if(directionZ >= 0.0f)
-        {
-            RaycastHit hitFront = RaycastToGround(front);
-            if (directionX > 0.0f)
-            {
-                RaycastHit hitRight = RaycastToGround(right);
-                hit = hitFront.point.y > hitRight.point.y ? hitFront : hitRight;
-            }
-            else if(directionX < 0.0f)
-            {
-                RaycastHit hitLeft = RaycastToGround(left);
-                hit = hitFront.point.y > hitLeft.point.y ? hitFront : hitLeft;
-            }
-        }
-        else if (directionZ < 0.0f)
-        {
-            RaycastHit hitBack = RaycastToGround(back);
-            if (directionX > 0.0f)
-            {
-                RaycastHit hitRight = RaycastToGround(right);
-                hit = hitBack.point.y > hitRight.point.y ? hitBack : hitRight;
-            }
-            else if (directionX < 0.0f)
-            {
-                RaycastHit hitLeft = RaycastToGround(left);
-                hit = hitBack.point.y > hitLeft.point.y ? hitBack : hitLeft;
-            }
-        }*/
-
-        Vector3 pointOnCollider = transform.position + velocity + (lastCollisionPoint - transform.position);
+        Vector3 pointOnCollider = transform.position + velocity + lastCollisionPoint;
         hit = RaycastToGround(pointOnCollider);
 
-        if (hit.distance > 0.0f)
+        if (hit.distance > delta)
         {
             float angle = Vector3.Angle(hit.normal, transform.up);
-            if(angle != 0.0f && angle <= maxDescentSlopeAngle)
+            if (angle != 0.0f && angle <= maxDescentSlopeAngle)
             {
-                if(Mathf.Sign(hit.normal.z) == velocity.z && Mathf.Sign(hit.normal.x) == velocity.x)
+                if(Mathf.Sign(hit.normal.z) == Mathf.Sign(velocity.z) && Mathf.Sign(hit.normal.x) == Mathf.Sign(velocity.x))
                 {
                     output.y = hit.point.y;
                 }
             }
         }
-        return Vector3.zero;
+        return output;
     }
 
     private RaycastHit RaycastToGround(Vector3 origin)

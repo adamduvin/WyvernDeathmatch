@@ -1,0 +1,9 @@
+active
+	false switching
+		false reloading
+			false cooldown
+				true fullauto
+					true shoot
+					false semiAutoReadyToFire
+						true shoot
+						false countdown

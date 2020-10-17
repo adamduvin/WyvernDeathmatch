@@ -11,6 +11,12 @@ public class PlayerShoot : MonoBehaviour
     [SerializeField]
     private Camera playerCamera;
 
+    public Camera PlayerCamera
+    {
+        get { return playerCamera; }
+        set { playerCamera = value; }
+    }
+
     private float distance;
 
     public float Distance
@@ -34,7 +40,7 @@ public class PlayerShoot : MonoBehaviour
     [SerializeField]
     private float spawnPointAdjustment = 0.0f;
 
-    private LayerMask maskExcludeSoftBoundary;
+    public static LayerMask maskExcludeSoftBoundary;
 
     // Start is called before the first frame update
     private void Start()
@@ -49,7 +55,7 @@ public class PlayerShoot : MonoBehaviour
         //currentWeaponIndex = -1;
         /*currentWeapon = weapons[0];
         currentWeapon.MakeWeaponActive();*/
-        Debug.Log(currentWeapon.maxAmmo);
+        //Debug.Log(currentWeapon.maxAmmo);
         //LoadNextWeapon();
         //projectileSpawnPoint = playerCamera.transform.forward * distance;
     }
@@ -118,24 +124,37 @@ public class PlayerShoot : MonoBehaviour
 
     public void FindProjectileTarget(ref Vector3 target)
     {
-        if(Input.GetMouseButton(0) || Input.GetMouseButtonDown(0))
+        RaycastHit hit;
+        Vector3 hitLocation;
+        if (Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, Mathf.Infinity, maskExcludeSoftBoundary))
         {
-            RaycastHit hit;
-            Vector3 hitLocation;
-            if(Physics.Raycast(playerCamera.transform.position, playerCamera.transform.forward, out hit, Mathf.Infinity, maskExcludeSoftBoundary))
-            {
-                //Debug.Log(hit.collider.gameObject.name);
-                hitLocation = hit.point;
-            }
-            else
-            {
-                hitLocation = playerCamera.transform.position + (playerCamera.transform.forward * 1000.0f);
-            }
-
-            target = hitLocation;
-            
-            //currentWeapon.Shoot(projectileSpawnPoint.transform.position, hitLocation);// playerCamera.transform.rotation);
-            //cooldownTimeRemaining = currentWeapon.cooldownTime;
+            Debug.Log(hit.collider.gameObject.name);
+            hitLocation = hit.point;
         }
+        else
+        {
+            hitLocation = GetComponent<PlayerCore>().lookAtTarget.transform.position;
+        }
+
+        target = hitLocation;
     }
+
+
+    // See if this can be implemented better
+    /*public static void FindProjectileTarget(ref Vector3 target, Vector3 start, Vector3 direction, Vector3 alternative)
+    {
+        RaycastHit hit;
+        Vector3 hitLocation;
+        if (Physics.Raycast(start, direction, out hit, Mathf.Infinity, maskExcludeSoftBoundary))
+        {
+            Debug.Log(hit.collider.gameObject.name);
+            hitLocation = hit.point;
+        }
+        else
+        {
+            hitLocation = alternative;
+        }
+
+        target = hitLocation;
+    }*/
 }

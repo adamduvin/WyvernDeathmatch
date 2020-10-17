@@ -16,19 +16,27 @@ This game is a third-person multiplayer shooter with flight mechanics. Players h
 
 ### Future Plans
 - Revise movement, camera, and shooting systems.
-    - Fix jerky camera movement.
-    - Simplify movement, especially removing unused variables and renaming used variables to make more sense.
+    - Stop camera form clipping through objects.
+    - Make ADS dependent on weapon rather than player.
     - Change weapon implementation to allow for easier weapon creation.
-    - Fix bug that makes second weapon's ammo count appear on scene load.
     - ADS will affect spread.
 - Code refactoring, comments, and cleanup.
 - Add player spawning and death.
-- Remove projectile spawning and use an object pool instead.
 - Add in obstacles and graybox testbed level.
 - Add in player models and animations.
 
 
 ### Change History (Organized By Date)
+#### 10/17/2020
+- Started new level greybox.
+- Redesigned movement and camera system.
+- Cleaned up commented-out code and added comments to movement and camera system files.
+- Fixed jerky camera movement.
+- Fixed bug that caused second weapon's ammo count to appear on scene load.
+
+#### 8/12/2020
+- Built draft 1 of level greybox.
+
 #### 7/27/2020
 - Implemented object pools for player projectiles.
 - Fixed a bug where continuing to sprint after stamina reaches zero would result in the player continuing to sprint with no stamina regeneration. Reaching zero stamina now invokes a wait-time before you can begin sprinting again.

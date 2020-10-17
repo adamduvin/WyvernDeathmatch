@@ -6,6 +6,16 @@ using static Globals;
 
 public class PlayerCore : MonoBehaviour
 {
+    private PlayerShoot playerShoot;
+
+    [SerializeField]
+    private GameObject cameraPrefab;
+
+    private GameObject followCamera;
+
+    [SerializeField]
+    public GameObject lookAtTarget;     // Make private when you're done refactoring shooting system
+
     [SerializeField]
     private int maxHealth;
     [SerializeField]
@@ -79,9 +89,11 @@ public class PlayerCore : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        playerShoot = GetComponent<PlayerShoot>();
         health = maxHealth;
         stamina = maxStamina;
         flightStamina = maxFlightStamina;
+        CreateCamera();
     }
 
     // Update is called once per frame
@@ -103,12 +115,28 @@ public class PlayerCore : MonoBehaviour
         }
 
         healthBar.fillAmount = Mathf.Lerp(healthBar.fillAmount, health / 100f, healthLerpPercent * Time.deltaTime); // Health divided by 100, but might need to change. Basically needs to be between 0.0 and 1.0.
-        staminaBar.fillAmount = Mathf.Lerp(staminaBar.fillAmount, stamina / 100f, staminaLerpPercent * Time.deltaTime);
-        flightStaminaBar.fillAmount = Mathf.Lerp(flightStaminaBar.fillAmount, flightStamina / 100f, flightStaminaLerpPercent * Time.deltaTime);
+        /*staminaBar.fillAmount = Mathf.Lerp(staminaBar.fillAmount, stamina / 100f, staminaLerpPercent * Time.deltaTime);
+        flightStaminaBar.fillAmount = Mathf.Lerp(flightStaminaBar.fillAmount, flightStamina / 100f, flightStaminaLerpPercent * Time.deltaTime);*/
     }
 
     public void TakeDamage(float damage, DamageType element)
     {
         health -= damage;
+    }
+
+    public void CreateCamera()
+    {
+        if (!followCamera)
+        {
+            followCamera = Instantiate(cameraPrefab, transform.position, transform.rotation);
+            lookAtTarget = GameObject.Find("LookAtTarget");
+            playerShoot.PlayerCamera = followCamera.GetComponentInChildren<Camera>();
+            followCamera.transform.position += followCamera.GetComponentInChildren<PlayerCamera>().CurrentOffset;
+            followCamera.GetComponent<PlayerCameraParent>().SetUpCamera(GetComponent<PlayerMovement>(), lookAtTarget, transform);
+
+            Vector3 targetPos = followCamera.GetComponentInChildren<PlayerCamera>().CurrentOffset;
+            targetPos.z = 1000.0f;
+            lookAtTarget.transform.localPosition = targetPos;
+        }
     }
 }
