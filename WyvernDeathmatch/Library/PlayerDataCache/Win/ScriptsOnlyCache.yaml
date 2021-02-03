@@ -1,17 +1,18 @@
 ScriptsOnlyBuild:
   usedScripts:
-    Assembly-CSharp-Editor.dll:
-    - YuME_mapEditor
     Assembly-CSharp-firstpass.dll:
     - UnityStandardAssets.Utility.FPSCounter
     - UnityStandardAssets.Water.Water
     Assembly-CSharp.dll:
     - AOE
+    - ConventionalWeapon
     - GameManager
     - InstructionsContinueButton
+    - MagicWeapon
     - MainMenuManager
     - MultiplayerButton
     - PlayerCamera
+    - PlayerCameraParent
     - PlayerCore
     - PlayerMovement
     - PlayerShoot
@@ -20,20 +21,20 @@ ScriptsOnlyBuild:
     - Spawner
     - StartButton
     - Weapon
+    - WeaponData
     - WeaponUI
-    - YuME_editorData
-    - YuME_editorPreferences
-    - YuME_tileGizmo
-    - YuME_tilesetData
     Unity.Polybrush.Editor.dll:
     - UnityEditor.Polybrush.BrushModeRaiseLower
     - UnityEditor.Polybrush.BrushSettings
     - UnityEditor.Polybrush.PolyEditor
+    Unity.ProBuilder.Editor.dll:
+    - UnityEditor.ProBuilder.EditorMeshHandles
     Unity.ProBuilder.dll:
     - UnityEngine.ProBuilder.ProBuilderMesh
     Unity.RenderPipelines.HighDefinition.Editor.dll:
     - UnityEditor.Experimental.Rendering.HDPipeline.HDProjectSettings
     Unity.RenderPipelines.HighDefinition.Runtime.dll:
+    - UnityEngine.Experimental.Rendering.HDPipeline.HDAdditionalLightData
     - UnityEngine.Experimental.Rendering.UI.DebugUIHandlerBitField
     - UnityEngine.Experimental.Rendering.UI.DebugUIHandlerButton
     - UnityEngine.Experimental.Rendering.UI.DebugUIHandlerCanvas
@@ -61,30 +62,15 @@ ScriptsOnlyBuild:
     - UnityEngine.Experimental.Rendering.UI.UIFoldout
     Unity.TerrainTools.Editor.dll:
     - UnityEditor.Experimental.TerrainAPI.BillowNoise
-    - UnityEditor.Experimental.TerrainAPI.BridgeTool
-    - UnityEditor.Experimental.TerrainAPI.CloneBrushTool
-    - UnityEditor.Experimental.TerrainAPI.ContrastTool
     - UnityEditor.Experimental.TerrainAPI.FbmFractalType
-    - UnityEditor.Experimental.TerrainAPI.MeshStampTool
     - UnityEditor.Experimental.TerrainAPI.NoiseBlitShaderGenerator
     - UnityEditor.Experimental.TerrainAPI.NoiseFillShaderGenerator
-    - UnityEditor.Experimental.TerrainAPI.NoiseHeightTool
     - UnityEditor.Experimental.TerrainAPI.NoneFractalType
-    - UnityEditor.Experimental.TerrainAPI.PaintHeightTool
-    - UnityEditor.Experimental.TerrainAPI.PaintTextureTool
     - UnityEditor.Experimental.TerrainAPI.PerlinNoise
     - UnityEditor.Experimental.TerrainAPI.RidgeNoise
-    - UnityEditor.Experimental.TerrainAPI.SetHeightTool
-    - UnityEditor.Experimental.TerrainAPI.SharpenPeaksTool
-    - UnityEditor.Experimental.TerrainAPI.SlopeFlattenTool
-    - UnityEditor.Experimental.TerrainAPI.SmoothHeightTool
-    - UnityEditor.Experimental.TerrainAPI.StampTool
     - UnityEditor.Experimental.TerrainAPI.StrataFractalType
-    - UnityEditor.Experimental.TerrainAPI.TerraceErosion
-    - UnityEditor.Experimental.TerrainAPI.ThermalErosionTool
     - UnityEditor.Experimental.TerrainAPI.ValueNoise
     - UnityEditor.Experimental.TerrainAPI.VoronoiNoise
-    - UnityEditor.Experimental.TerrainAPI.WindErosionTool
     UnityEditor.Graphs.dll:
     - UnityEditor.Graphs.AnimationBlendTree.Graph
     - UnityEditor.Graphs.AnimationBlendTree.GraphGUI
@@ -140,17 +126,17 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11964}
     - Class: 114
-      Script: {instanceID: 12906}
+      Script: {instanceID: 12910}
     - Class: 114
-      Script: {instanceID: 13286}
+      Script: {instanceID: 13290}
     - Class: 114
-      Script: {instanceID: 14752}
+      Script: {instanceID: 14758}
     - Class: 114
-      Script: {instanceID: 14886}
+      Script: {instanceID: 14892}
     - Class: 114
-      Script: {instanceID: 15800}
+      Script: {instanceID: 15808}
     - Class: 114
-      Script: {instanceID: 15974}
+      Script: {instanceID: 15982}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -219,63 +205,63 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 12548}
     - Class: 114
-      Script: {instanceID: 12646}
+      Script: {instanceID: 12648}
     - Class: 114
-      Script: {instanceID: 12824}
+      Script: {instanceID: 12826}
     - Class: 114
-      Script: {instanceID: 12954}
+      Script: {instanceID: 12958}
     - Class: 114
-      Script: {instanceID: 13286}
+      Script: {instanceID: 13290}
     - Class: 114
-      Script: {instanceID: 13322}
+      Script: {instanceID: 13326}
     - Class: 114
-      Script: {instanceID: 13556}
+      Script: {instanceID: 13560}
     - Class: 114
-      Script: {instanceID: 13814}
+      Script: {instanceID: 13820}
     - Class: 114
-      Script: {instanceID: 13934}
+      Script: {instanceID: 13940}
     - Class: 114
-      Script: {instanceID: 13964}
+      Script: {instanceID: 13970}
     - Class: 114
-      Script: {instanceID: 14178}
+      Script: {instanceID: 14184}
     - Class: 114
-      Script: {instanceID: 14192}
+      Script: {instanceID: 14198}
     - Class: 114
-      Script: {instanceID: 14236}
+      Script: {instanceID: 14242}
     - Class: 114
-      Script: {instanceID: 14248}
+      Script: {instanceID: 14254}
     - Class: 114
-      Script: {instanceID: 14520}
+      Script: {instanceID: 14526}
     - Class: 114
-      Script: {instanceID: 14728}
+      Script: {instanceID: 14734}
     - Class: 114
-      Script: {instanceID: 14752}
+      Script: {instanceID: 14758}
     - Class: 114
-      Script: {instanceID: 14838}
+      Script: {instanceID: 14844}
     - Class: 114
-      Script: {instanceID: 14886}
+      Script: {instanceID: 14892}
     - Class: 114
-      Script: {instanceID: 15264}
+      Script: {instanceID: 15272}
     - Class: 114
-      Script: {instanceID: 15508}
+      Script: {instanceID: 15516}
     - Class: 114
-      Script: {instanceID: 15584}
+      Script: {instanceID: 15592}
     - Class: 114
-      Script: {instanceID: 15800}
+      Script: {instanceID: 15808}
     - Class: 114
-      Script: {instanceID: 15916}
+      Script: {instanceID: 15924}
     - Class: 114
-      Script: {instanceID: 15922}
+      Script: {instanceID: 15930}
     - Class: 114
-      Script: {instanceID: 15974}
+      Script: {instanceID: 15982}
     - Class: 114
-      Script: {instanceID: 16014}
+      Script: {instanceID: 16022}
     - Class: 114
-      Script: {instanceID: 16024}
+      Script: {instanceID: 16032}
     - Class: 114
-      Script: {instanceID: 16218}
+      Script: {instanceID: 16226}
     - Class: 114
-      Script: {instanceID: 16224}
+      Script: {instanceID: 16232}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -313,11 +299,15 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 64
       Script: {instanceID: 0}
+    - Class: 65
+      Script: {instanceID: 0}
     - Class: 81
       Script: {instanceID: 0}
     - Class: 90
       Script: {instanceID: 0}
     - Class: 95
+      Script: {instanceID: 0}
+    - Class: 96
       Script: {instanceID: 0}
     - Class: 104
       Script: {instanceID: 0}
@@ -342,27 +332,35 @@ ScriptsOnlyBuild:
     - Class: 114
       Script: {instanceID: 11964}
     - Class: 114
-      Script: {instanceID: 13452}
+      Script: {instanceID: 12640}
     - Class: 114
-      Script: {instanceID: 13458}
+      Script: {instanceID: 12902}
     - Class: 114
-      Script: {instanceID: 13868}
+      Script: {instanceID: 13456}
     - Class: 114
-      Script: {instanceID: 13876}
+      Script: {instanceID: 13462}
     - Class: 114
-      Script: {instanceID: 13954}
+      Script: {instanceID: 13592}
     - Class: 114
-      Script: {instanceID: 14004}
+      Script: {instanceID: 13874}
     - Class: 114
-      Script: {instanceID: 14716}
+      Script: {instanceID: 13882}
     - Class: 114
-      Script: {instanceID: 14752}
+      Script: {instanceID: 13960}
     - Class: 114
-      Script: {instanceID: 15664}
+      Script: {instanceID: 14010}
     - Class: 114
-      Script: {instanceID: 15800}
+      Script: {instanceID: 14722}
     - Class: 114
-      Script: {instanceID: 15974}
+      Script: {instanceID: 14758}
+    - Class: 114
+      Script: {instanceID: 15184}
+    - Class: 114
+      Script: {instanceID: 15672}
+    - Class: 114
+      Script: {instanceID: 15808}
+    - Class: 114
+      Script: {instanceID: 15982}
     - Class: 115
       Script: {instanceID: 0}
     - Class: 128
@@ -377,7 +375,9 @@ ScriptsOnlyBuild:
       Script: {instanceID: 0}
     - Class: 157
       Script: {instanceID: 0}
-    - Class: 212
+    - Class: 198
+      Script: {instanceID: 0}
+    - Class: 199
       Script: {instanceID: 0}
     - Class: 213
       Script: {instanceID: 0}
@@ -496,7 +496,7 @@ ScriptsOnlyBuild:
     className: PreferenceDictionary
   - hash:
       serializedVersion: 2
-      Hash: a23950396d4109636410f1245dd98b31
+      Hash: ac79e2b275e6e1c0167f2633f3c90c4b
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: PlayerMovement
@@ -622,10 +622,10 @@ ScriptsOnlyBuild:
     className: MotionBlur
   - hash:
       serializedVersion: 2
-      Hash: fc8eef89292f016d071e5a82e24084fe
+      Hash: 85f739ae63075fbe97f8ae6ee16c1147
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
-    className: PlayerCamera
+    className: PlayerCameraParent
   - hash:
       serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
@@ -1180,6 +1180,12 @@ ScriptsOnlyBuild:
     className: Vignette
   - hash:
       serializedVersion: 2
+      Hash: ccf3ae8784051bd6dd44ff730d117620
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: ConventionalWeapon
+  - hash:
+      serializedVersion: 2
       Hash: d4020bafcd3ccbb5601a6e6c8ac78be0
     assemblyName: UnityEngine.UI.dll
     namespaceName: UnityEngine.UI
@@ -1298,6 +1304,12 @@ ScriptsOnlyBuild:
     assemblyName: Assembly-CSharp-firstpass.dll
     namespaceName: UnityStandardAssets.Water
     className: PlanarReflection
+  - hash:
+      serializedVersion: 2
+      Hash: 104906aabeb98bc4b2942273b4403808
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: PlayerCamera
   - hash:
       serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f
@@ -1486,13 +1498,13 @@ ScriptsOnlyBuild:
     className: VFXLightBinder
   - hash:
       serializedVersion: 2
-      Hash: 6f56e444ef25ae7e45df1bc5c2d9cde7
+      Hash: 1193bfbbf7eb035abaac260076966e4a
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Projectile
   - hash:
       serializedVersion: 2
-      Hash: 0297b3fa3e32445464b6d21eee2033fb
+      Hash: 7b15c58d1110ea6f194755953b52ea44
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: PlayerCore
@@ -1520,6 +1532,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualEffectGraph.Runtime.dll
     namespaceName: UnityEngine.Experimental.VFX.Utility
     className: VFXVelocityBinder
+  - hash:
+      serializedVersion: 2
+      Hash: de0c4c5f4f53b78cd0d096ec343888eb
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: WeaponData
   - hash:
       serializedVersion: 2
       Hash: 841f439a20b4a381d5a0c5ec9e36deda
@@ -1588,7 +1606,7 @@ ScriptsOnlyBuild:
     className: SignalReceiver
   - hash:
       serializedVersion: 2
-      Hash: a32788ff97120dd37330299aa8d74b21
+      Hash: 5bb42532c748800cc4b54b7f79a78116
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: Weapon
@@ -1852,7 +1870,7 @@ ScriptsOnlyBuild:
     className: AudioTrack
   - hash:
       serializedVersion: 2
-      Hash: 3802afab000a71f905ae29a0c8ac94f8
+      Hash: 1e3f77bd2dc602c17d06742ce1e5d956
     assemblyName: Assembly-CSharp.dll
     namespaceName: 
     className: PlayerShoot
@@ -1970,6 +1988,12 @@ ScriptsOnlyBuild:
     assemblyName: Unity.VisualEffectGraph.Runtime.dll
     namespaceName: UnityEngine.Experimental.VFX.Utility
     className: VFXInputAxisBinder
+  - hash:
+      serializedVersion: 2
+      Hash: 3c4fcfec53c1b615daf96f9fc90b1513
+    assemblyName: Assembly-CSharp.dll
+    namespaceName: 
+    className: MagicWeapon
   - hash:
       serializedVersion: 2
       Hash: 71bb6a6b6c8f052f948db64c7dd3ca4f

@@ -14,6 +14,8 @@ public class Projectile : MonoBehaviour
     [SerializeField]
     private GameObject areaOfEffectPrototype;
     private Rigidbody rb;
+    [SerializeField]
+    private TrailRenderer trailRenderer;
 
 
     //private const int playerMask = LayerMask.GetMask("Player");
@@ -48,7 +50,7 @@ public class Projectile : MonoBehaviour
 
     private void OnCollisionEnter(Collision collision)
     {
-        Debug.Log("AOE Debug");
+        //Debug.Log("AOE Debug");
         //Debug.Log(other.name);
         // Remember to change case values if layers get changed
         //Debug.Log("Collision with " + collision.GetContact(0).otherCollider.name);
@@ -114,6 +116,10 @@ public class Projectile : MonoBehaviour
     public void Shoot(GameObject projectileSpawnPoint, Vector3 target, float currentDeviation, float maxVelocity)
     {
         rb.transform.position = projectileSpawnPoint.transform.position;
+        if (trailRenderer)
+        {
+            trailRenderer.Clear();
+        }
         rb.transform.LookAt(target);
         rb.transform.Rotate(Quaternion.Euler(Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f), Random.Range(-currentDeviation / 3.0f, currentDeviation / 3.0f)).eulerAngles);
         rb.velocity = rb.transform.forward.normalized * maxVelocity;

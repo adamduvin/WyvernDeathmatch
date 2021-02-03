@@ -117,7 +117,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 2000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -156,8 +156,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 706dba87a0397a848a1000cfbe99754b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  offset: {x: 1, y: 1, z: -5}
-  offsetADS: {x: 0.75, y: 0.75, z: -4}
+  offset: {x: 1.5, y: 3, z: -7}
+  offsetADS: {x: 1.25, y: 2.75, z: -4}
   zoomSmoothing: 0.2
   defaultFOV: 60
   zoomFOV: 20
@@ -209,7 +209,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 653d75b179420724bad254e24ab38305, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerMovement: {fileID: 0}
   playerTransform: {fileID: 0}
   movementSmoothing: 0.015
   turningSpeedAir: 60

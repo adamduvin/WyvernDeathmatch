@@ -102,7 +102,7 @@ public class PlayerCamera : MonoBehaviour
             hitLocation = lookAtTarget.transform.position;
         }
 
-        transform.LookAt(hitLocation);
+        //transform.LookAt(hitLocation);
     }
 
     // Softly moves between aiming modes

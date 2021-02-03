@@ -94,6 +94,7 @@ public class PlayerCore : MonoBehaviour
         stamina = maxStamina;
         flightStamina = maxFlightStamina;
         CreateCamera();
+        playerShoot.SetupPlayerShoot();
     }
 
     // Update is called once per frame

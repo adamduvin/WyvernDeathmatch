@@ -25,6 +25,9 @@ enum MovementSpeed
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField]
+    private PlayerState playerState;
+
+    [SerializeField]
     private float maxStamina;
     private float stamina;
     [SerializeField]
@@ -90,8 +93,6 @@ public class PlayerMovement : MonoBehaviour
 
     [SerializeField]
     private Vector3 velocity;
-
-    private PlayerState playerState;
 
     private CharacterController characterController;
 

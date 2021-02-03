@@ -6,6 +6,9 @@ using static Globals;
 
 public class Weapon : MonoBehaviour
 {
+    [SerializeField]
+    protected WeaponData weaponData;
+
     public int impactDamage;
     public int areaOfEffectDamage;
     public float areaOfEffectDiameter;
@@ -14,15 +17,15 @@ public class Weapon : MonoBehaviour
     public float maxVelocity;
     public float reloadTime = 0.0f;
     [SerializeField]
-    private float reloadTimeRemaining = 0.0f;
+    protected float reloadTimeRemaining = 0.0f;
     public float cooldownTime = 0.0f;      // Essentially Rate of Fire
     [SerializeField]
-    private float cooldownTimeRemaining;
-    public float swapTime = 0.0f;     // Make everyting const?
-    private float swapTimeRemaining;
+    protected float cooldownTimeRemaining;
+    public float swapTime = 0.0f;
+    protected float swapTimeRemaining;
     public float maxAmmo = 0;
     [SerializeField]
-    private float currentAmmo;
+    protected float currentAmmo;
     public Vector3 ADSDistance;
     public GameObject projectilePrefab;
     public float maxDeviation;
@@ -34,24 +37,25 @@ public class Weapon : MonoBehaviour
     public bool isActive = false;
     public bool isAutomatic = false;
     public bool semiautoReadyToFire = false;        // Set to true in inspector if this weapon is semi-auto
+    public Vector3 localPosition = Vector3.zero;
 
     [SerializeField]
-    private GameObject projectileSpawnPoint;
+    protected GameObject projectileSpawnPoint;
 
-    private Vector3 target;
-    private PlayerShoot playerShoot;
+    protected Vector3 target;
+    protected PlayerShoot playerShoot;
     
-    public Image UIElement;
+    public Image uiElement;
     [SerializeField]
-    private Image counter;
+    protected Image counter;
     [SerializeField]
-    private Text counterText;
+    protected Text counterText;
 
-    private bool isReloading = false;
+    protected bool isReloading = false;
 
     #region Projectile Object Pool
-    private int poolIndex = 0;
-    private GameObject[] projectiles;
+    protected int poolIndex = 0;
+    protected GameObject[] projectiles;
     #endregion
 
     void OnEnable()
@@ -71,13 +75,13 @@ public class Weapon : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-        playerShoot = GetComponent<PlayerShoot>();
+        playerShoot = GetComponentInParent<PlayerShoot>().GetComponent<PlayerShoot>();
         projectiles = new GameObject[(int)maxAmmo];
         CreateProjectiles();
     }
 
     // Update is called once per frame
-    void Update()
+    protected virtual void Update()
     {
         //Debug.Log(counter.fillAmount);
         if(swapTimeRemaining <= delta)
@@ -184,7 +188,7 @@ public class Weapon : MonoBehaviour
         }
     }
 
-    private void CreateProjectiles()
+    protected void CreateProjectiles()
     {
         for(int i = 0; i < projectiles.Length; i++)
         {
@@ -192,5 +196,49 @@ public class Weapon : MonoBehaviour
             projectiles[i] = projectile;
             projectile.SetActive(false);
         }
+    }
+
+
+
+
+    /// <summary>
+    /// Initializes member fields from a WeaponData scriptable object.
+    /// Damage and AOE related fields do not currently affect the projectile. An editor tool is currently planned to assist in creating weapons that will assign these values to the prefab during creation.
+    /// </summary>
+    /// <param name="playerShoot">The PlayerShoot component attached to the player</param>
+    /// <param name="uiElement">UI Image shown when switching weapons</param>
+    /// <param name="counter">UI Image indicating remaining ammo and reload progress</param>
+    /// <param name="counterText">UI Text displaying remaining ammo and the reloading message</param>
+    public virtual void SetupWeapon(PlayerShoot playerShoot, Image uiElement, Image counter, Text counterText)
+    {
+        impactDamage = weaponData.impactDamage;
+        areaOfEffectDamage = weaponData.areaOfEffectDamage;
+        areaOfEffectDiameter = weaponData.areaOfEffectDiameter;
+        damageType = weaponData.damageType;
+        force = weaponData.force;
+        maxVelocity = weaponData.maxVelocity;
+        reloadTime = weaponData.reloadTime;
+        cooldownTime = weaponData.cooldownTime;
+        swapTime = weaponData.swapTime;
+        maxAmmo = weaponData.maxAmmo;
+        ADSDistance = weaponData.ADSDistance;
+        projectilePrefab = weaponData.projectilePrefab;
+        maxDeviation = weaponData.maxDeviation;
+        maxDeviationADS = weaponData.maxDeviationADS;
+        deviationIncreaseModifier = weaponData.deviationIncreaseModifier;
+        deviationDecreaseModifier = weaponData.deviationDecreaseModifier;
+        isAutomatic = weaponData.isAutomatic;
+        //transform.position = weaponData.positionOffset;
+
+        currentDeviation = 0.0f;
+        currentMaxDeviation = maxDeviation;
+        currentAmmo = maxAmmo;
+        projectiles = new GameObject[(int)maxAmmo];
+        CreateProjectiles();
+
+        this.playerShoot = playerShoot;
+        this.uiElement = uiElement;
+        this.counter = counter;
+        this.counterText = counterText;
     }
 }

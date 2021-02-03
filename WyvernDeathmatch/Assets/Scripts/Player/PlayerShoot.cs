@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 using static Globals;
 
 public class PlayerShoot : MonoBehaviour
@@ -25,6 +26,8 @@ public class PlayerShoot : MonoBehaviour
     }
 
     [SerializeField]
+    private Weapon[] weaponPrefabs;     // Temp
+    [SerializeField]
     private Weapon[] weapons;
 
     private Weapon currentWeapon;
@@ -42,12 +45,19 @@ public class PlayerShoot : MonoBehaviour
 
     public static LayerMask maskExcludeSoftBoundary;
 
+    [SerializeField]
+    public Image[] weaponUIElements;
+    [SerializeField]
+    private Image counter;
+    [SerializeField]
+    private Text counterText;
+
     // Start is called before the first frame update
     private void Start()
     {
-        maskExcludeSoftBoundary =~ LayerMask.GetMask("SoftBoundary");
+        /*maskExcludeSoftBoundary =~ LayerMask.GetMask("SoftBoundary");
         currentWeapon = weapons[0];
-        currentWeapon.MakeWeaponActive();
+        currentWeapon.MakeWeaponActive();*/
     }
 
     void OnEnable()
@@ -104,7 +114,7 @@ public class PlayerShoot : MonoBehaviour
         {
             LoadNextWeapon();
             swapTimeRemaining = currentWeapon.swapTime;
-            currentWeapon.UIElement.gameObject.GetComponent<WeaponUI>().MakeActive();
+            currentWeapon.uiElement.gameObject.GetComponent<WeaponUI>().MakeActive();
         }
     }
 
@@ -137,6 +147,24 @@ public class PlayerShoot : MonoBehaviour
         }
 
         target = hitLocation;
+    }
+
+    // weaponPrefabs, counter, and counterText arguments will temporarily not be used. Later it will be popluated by the spawning system that posesses each player's loadout data
+    public void SetupPlayerShoot(/*Weapon[] weaponPrefabs, ref Image[] weaponUIElements, ref Image counter, ref Text counterText*/)
+    {
+        for(int i = 0; i < weapons.Length; i++)
+        {
+            Weapon weapon = Instantiate(weaponPrefabs[i], Vector3.zero, Quaternion.identity);
+            weapon.transform.parent = gameObject.transform;
+            weapon.transform.localRotation = Quaternion.identity;
+            weapon.transform.localPosition = Vector3.zero;
+            weapon.SetupWeapon(this, weaponUIElements[i], counter, counterText);
+            weapons[i] = weapon;
+        }
+
+        maskExcludeSoftBoundary = ~LayerMask.GetMask("SoftBoundary");
+        currentWeapon = weapons[0];
+        currentWeapon.MakeWeaponActive();
     }
 
 
