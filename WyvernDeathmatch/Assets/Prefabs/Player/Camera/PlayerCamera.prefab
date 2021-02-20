@@ -117,7 +117,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 2000
+  far clip plane: 3000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -157,6 +157,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   offset: {x: 1.5, y: 3, z: -7}
+  offsetFlight: {x: 2, y: 3.5, z: -12}
   offsetADS: {x: 1.25, y: 2.75, z: -4}
   zoomSmoothing: 0.2
   defaultFOV: 60

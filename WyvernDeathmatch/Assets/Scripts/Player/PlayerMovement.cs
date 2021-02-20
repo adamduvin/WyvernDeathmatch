@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using static Globals;
 
-enum PlayerState
+public enum PlayerState
 {
     OnGround = 0,
     InAir = 1,
@@ -26,6 +26,11 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField]
     private PlayerState playerState;
+
+    public PlayerState PlayerMovementState
+    {
+        get { return playerState; }
+    }
 
     [SerializeField]
     private float maxStamina;

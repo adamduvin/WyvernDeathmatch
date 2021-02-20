@@ -27,13 +27,17 @@ This game is a third-person multiplayer shooter with flight mechanics. Players h
 
 
 ### Change History (Organized By Date)
+#### 02/19/2021
+- Created level greybox.
+- Removed stamina as a mechanic. It sucked.
+
 #### 02/03/2021
 - Overhauled weapon system to use individual prefabs and ScriptableObjects. This makes it easier to add and modify weapons.
 - Added player placeholder model.
 - Changed bullet prefab to use a more bullet-shaped model and a trail renderer for a tracer effect.
-- Removed flight stamina deplection. Sprinting and stamina are a mess right now and I'm not sure if I want to keep them as game mechanics. Leaning towards removing both types of stamina.
+- Removed flight stamina depletion. Sprinting and stamina are a mess right now and I'm not sure if I want to keep them as game mechanics. Leaning towards removing both types of stamina.
     - Stamina just slows the game down, and this game is supposed to be fast paced.
-- Locked frame rate to 60 fps supposedly (on my 144hz monitor it runs at 144 fps ¯\_(ツ)_/¯). Either way, the framerate and stuttering issues should be resolved.
+- Locked frame rate to 60 fps supposedly (on my 144hz monitor it runs at 144 fps ¯\\_(ツ)_/¯). Either way, the framerate and stuttering issues should be resolved.
 
 #### 10/17/2020
 - Started new level greybox.

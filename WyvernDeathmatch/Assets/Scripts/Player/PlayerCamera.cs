@@ -16,6 +16,9 @@ public class PlayerCamera : MonoBehaviour
     private Vector3 offset;
 
     [SerializeField]
+    private Vector3 offsetFlight;
+
+    [SerializeField]
     private Vector3 offsetADS;
 
     [SerializeField]
@@ -71,7 +74,15 @@ public class PlayerCamera : MonoBehaviour
         }
         else if (!Input.GetMouseButton(1))
         {
-            AimDownSights(offset, defaultFOV);
+            if(playerMovement.PlayerMovementState == PlayerState.InAir)
+            {
+                AimDownSights(offsetFlight, defaultFOV);
+            }
+            else
+            {
+                AimDownSights(offset, defaultFOV);
+            }
+            
             cameraState = CameraState.Normal;
         }
 
@@ -90,6 +101,19 @@ public class PlayerCamera : MonoBehaviour
         posWithOffset += transform.InverseTransformDirection(parentTransform.right) * currentOffset.x;
         posWithOffset += transform.InverseTransformDirection(parentTransform.up) * currentOffset.y;
         transform.localPosition = posWithOffset;
+
+        /*RaycastHit posHit;
+
+        Vector3 origin = playerCameraParent.transform.position + (transform.InverseTransformDirection(transform.up) * currentOffset.y);
+        Vector3 target = playerCameraParent.transform.position + (transform.rotation * currentOffset);
+
+        Debug.Log(target);
+
+        if (Physics.Raycast(origin, target, out posHit, (origin - target).magnitude, maskExcludeSoftBoundary))
+        {
+            //Debug.Log(currentOffset.z);
+            transform.position = posHit.point;
+        }*/
 
         RaycastHit hit;
         Vector3 hitLocation;
